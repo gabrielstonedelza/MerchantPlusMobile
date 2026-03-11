@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/customer.dart';
@@ -41,18 +42,59 @@ class ApiService {
     String email = '',
     String address = '',
     String city = '',
+    String idType = '',
+    String idNumber = '',
+    String dateOfBirth = '',
+    String digitalAddress = '',
+    File? idDocumentFront,
+    File? idDocumentBack,
+    File? photo,
   }) async {
-    final resp = await http.post(
+    final request = http.MultipartRequest(
+      'POST',
       _uri(ApiConfig.customersUrl),
-      headers: _headers,
-      body: jsonEncode({
-        'full_name': fullName,
-        'phone': phone,
-        if (email.isNotEmpty) 'email': email,
-        if (address.isNotEmpty) 'address': address,
-        if (city.isNotEmpty) 'city': city,
-      }),
     );
+
+    // Auth headers (skip Content-Type — MultipartRequest sets its own)
+    request.headers['Authorization'] = 'Token $token';
+    request.headers['X-Company-ID'] = companyId;
+
+    // Required fields
+    request.fields['full_name'] = fullName;
+    request.fields['phone'] = phone;
+
+    // Optional text fields
+    if (email.isNotEmpty) request.fields['email'] = email;
+    if (address.isNotEmpty) request.fields['address'] = address;
+    if (city.isNotEmpty) request.fields['city'] = city;
+    if (idType.isNotEmpty) request.fields['id_type'] = idType;
+    if (idNumber.isNotEmpty) request.fields['id_number'] = idNumber;
+    if (dateOfBirth.isNotEmpty) request.fields['date_of_birth'] = dateOfBirth;
+    if (digitalAddress.isNotEmpty) {
+      request.fields['digital_address'] = digitalAddress;
+    }
+
+    // File fields
+    if (idDocumentFront != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath(
+            'id_document_front', idDocumentFront.path),
+      );
+    }
+    if (idDocumentBack != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath(
+            'id_document_back', idDocumentBack.path),
+      );
+    }
+    if (photo != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath('photo', photo.path),
+      );
+    }
+
+    final streamed = await request.send();
+    final resp = await http.Response.fromStream(streamed);
     _checkResponse(resp);
     return Customer.fromJson(jsonDecode(resp.body));
   }

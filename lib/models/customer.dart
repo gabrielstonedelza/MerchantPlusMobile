@@ -9,6 +9,13 @@ class Customer {
   final String kycStatus;
   final String? registeredBy;
   final String createdAt;
+  final String? idType;
+  final String? idNumber;
+  final String? dateOfBirth;
+  final String? digitalAddress;
+  final String? photo;
+  final String? idDocumentFront;
+  final String? idDocumentBack;
 
   Customer({
     required this.id,
@@ -21,6 +28,13 @@ class Customer {
     this.kycStatus = 'pending',
     this.registeredBy,
     required this.createdAt,
+    this.idType,
+    this.idNumber,
+    this.dateOfBirth,
+    this.digitalAddress,
+    this.photo,
+    this.idDocumentFront,
+    this.idDocumentBack,
   });
 
   factory Customer.fromJson(Map<String, dynamic> json) => Customer(
@@ -34,6 +48,13 @@ class Customer {
         kycStatus: json['kyc_status'] ?? 'pending',
         registeredBy: json['registered_by_name'],
         createdAt: json['created_at'] ?? '',
+        idType: json['id_type'],
+        idNumber: json['id_number'],
+        dateOfBirth: json['date_of_birth'],
+        digitalAddress: json['digital_address'],
+        photo: json['photo'],
+        idDocumentFront: json['id_document_front'],
+        idDocumentBack: json['id_document_back'],
       );
 
   String get initials {
